@@ -22,20 +22,19 @@ local UI_TYPE_DICT = {}
 UI_TYPE_DICT[getText('IGUI_stable')] = UI_TYPE_STABLE
 UI_TYPE_DICT[getText('IGUI_experimental')] = UI_TYPE_EXPERIMENTAL
 local UI_DESCRIPTION_DICT = {}
--- UI_DESCRIPTION_DICT[UI_TYPE_STABLE] = 'Stable type info:<BR> The cars will be removed and spawned in a new location. Items in the containers of the cars will be deleted.'
 UI_DESCRIPTION_DICT[UI_TYPE_STABLE] = getText('IGUI_Stable_info')
 UI_DESCRIPTION_DICT[UI_TYPE_EXPERIMENTAL] = getText('IGUI_Experimental_info')
--- UI_DESCRIPTION_DICT[UI_TYPE_EXPERIMENTAL] = 'Experimental type info:<BR> Teleport distance is limited. Desynchronization may occur <BR>'
--- local UI_DESCRIPTION_INSIDE = '<GREEN>Teleport is allowed'
 local UI_DESCRIPTION_INSIDE = getText('IGUI_Teleport_allowed')
--- local UI_DESCRIPTION_OUTSIDE = '<RED>Teleport not allowed. You have left the experimental teleport zone. Get back closer to the cars'
 local UI_DESCRIPTION_OUTSIDE = getText('IGUI_Teleport_disallowed')
+local UI_DESCRIPTION_IS_BUILDING = getText('IGUI_Teleport_disallowed_stable')
 local UI_COPY_DICT = {}
 UI_COPY_DICT[UI_TYPE_STABLE] = getText('IGUI_Teleport_cut_btn')
 UI_COPY_DICT[UI_TYPE_EXPERIMENTAL] = getText('IGUI_Teleport_target_btn')
 local UI_PASTE_DICT = {}
 UI_PASTE_DICT[UI_TYPE_STABLE] = getText('IGUI_Teleport_paste_btn')
 UI_PASTE_DICT[UI_TYPE_EXPERIMENTAL] = getText('IGUI_Teleport_teleport_btn')
+
+local markers = {}
 
 function CarTeleport_UI.selectArea_btnHandler(button, args)
     local self = args['self'] or {}
@@ -49,13 +48,35 @@ end
 ---@param button any
 ---@param self CarTeleport_UI
 function CarTeleport_UI.cancel_btnHandler(button, self)
-    self:close()
+    if self.isMove and self.type_value == UI_TYPE_STABLE then
+        local vehicleList = {table.unpack(self.vehicleList)}
+        local modal = ISModalDialog:new(
+            0, 0, 250, 150, 
+            getText('IGUI_Teleport_delete_confirm_pre').. #vehicleList .. getText('IGUI_Teleport_delete_confirm_post'), 
+            true, self, CarTeleport_UI.cancel_confirmHandler, self.player:getPlayerNum()
+        )
+        modal:initialise()
+        modal:addToUIManager()
+    else
+        self:close()
+    end
 end
 
 ---@param button any
 ---@param self CarTeleport_UI
 function CarTeleport_UI.reset_btnHandler(button, self)
-    self:reset()
+    if self.isMove and self.type_value == UI_TYPE_STABLE then
+        local vehicleList = {table.unpack(self.vehicleList)}
+        local modal = ISModalDialog:new(
+            0, 0, 250, 150, 
+            getText('IGUI_Teleport_delete_confirm_pre').. #vehicleList .. getText('IGUI_Teleport_delete_confirm_post'), 
+            true, self, CarTeleport_UI.reset_confirmHandler, self.player:getPlayerNum()
+        )
+        modal:initialise()
+        modal:addToUIManager()
+    else
+        self:reset()
+    end
 end
 
 ---@param button any
@@ -83,12 +104,22 @@ function CarTeleport_UI:experimentalTypeSetter()
     self.UI[UI_DESCRIPTION]:setText(text)
 end
 
+function CarTeleport_UI:stableTypeSetter()
+    local lastLine = ''
+    if self.isStableAllowed ~= nil and not self.isStableAllowed then
+        lastLine = UI_DESCRIPTION_IS_BUILDING
+    end
+
+    local text = UI_DESCRIPTION_DICT[UI_TYPE_STABLE] .. lastLine
+    self.UI[UI_DESCRIPTION]:setText(text)
+end
+
 function CarTeleport_UI:setTypeText()
     if self.type_value == UI_TYPE_EXPERIMENTAL then
         self:experimentalTypeSetter()
     end
     if self.type_value == UI_TYPE_STABLE then
-        self.UI[UI_DESCRIPTION]:setText(UI_DESCRIPTION_DICT[UI_TYPE_STABLE])
+        self:stableTypeSetter()
     end
 end
 
@@ -105,9 +136,24 @@ function CarTeleport_UI:delete_confirmHandler(button)
     end
 end
 
+function CarTeleport_UI:cancel_confirmHandler(button)
+    if button.internal == 'YES' then
+        self:close()
+    end
+end
+function CarTeleport_UI:reset_confirmHandler(button)
+    if button.internal == 'YES' then
+        self:reset()
+    end
+end
+
 ---@param button any
 ---@param self CarTeleport_UI
 function CarTeleport_UI.delete_btnHandler(button, self)
+    if not self or not self.vehicleList then
+        getPlayer():Say('OOPS: Unknown error. Please try again')
+        return
+    end
     local vehicleList = {table.unpack(self.vehicleList)}
     local modal = ISModalDialog:new(
         0, 0, 250, 150, 
@@ -124,13 +170,19 @@ function CarTeleport_UI:isVisible()
 end
 
 function CarTeleport_UI:close()
-    self:reset()
-    return self.UI:close()
+    local _self = self
+    if not self.isCarTeleport_UI then
+        _self = self.CarTeleport_UI_instance
+    end
+    _self:reset()
+    return _self.base_close(_self.UI)
 end
 
 function CarTeleport_UI:render() -- NOTE: украдено из steamapps\common\ProjectZomboid\media\lua\client\DebugUIs\ISRemoveItemTool.lua
     local self = self.CarTeleport_UI_instance -- HACK: достаём наш инстанс обратно из UI инстанса
     self.base_render(self.UI)
+
+    self.clearMarkers()
     
     if self.selectStart or self.isMove then 
         local xx, yy = ISCoordConversion.ToWorld(getMouseXScaled(), getMouseYScaled(), self.zPos)
@@ -149,7 +201,6 @@ function CarTeleport_UI:render() -- NOTE: украдено из steamapps\common
     if self.target then
         self.highlightArea(self.target.x1, self.target.x2, self.target.y1, self.target.y2, self.zPos, 'green')
     end
-
 end
 
 function CarTeleport_UI:onMouseDownOutside(x, y)
@@ -176,8 +227,33 @@ function CarTeleport_UI:onMouseDownOutside(x, y)
             y1 = self.origin.y1 - self.yDif,
             y2 = self.origin.y2 - self.yDif,
         }
-        self.UI[UI_PASTE]:setEnable(true)
+        self:checkBuilding()
+        print('self.isStableAllowed', self.isStableAllowed, self.type_value == UI_TYPE_STABLE)
+        if (self.isStableAllowed and self.type_value == UI_TYPE_STABLE) or self.type_value == UI_TYPE_EXPERIMENTAL then 
+            self.UI[UI_PASTE]:setEnable(true)
+        else
+            self.UI[UI_PASTE]:setEnable(false)
+        end
     end
+end
+
+function CarTeleport_UI:checkBuilding()
+    local cell = getCell()
+    local isDisallowed = false
+    for x = self.target.x1, self.target.x2 do
+        for y = self.target.y1, self.target.y2 do
+            local sq = cell:getGridSquare(x, y, self.zPos)
+            if sq then 
+                local building = sq:getBuilding()
+                -- print('building', building)
+                if building then
+                    isDisallowed = isDisallowed or true
+                end
+            end
+        end
+    end
+    self.isStableAllowed = not isDisallowed
+    self:setTypeText()
 end
 
 function CarTeleport_UI:checkDistance()
@@ -224,7 +300,6 @@ function CarTeleport_UI:renderCarsList()
         _self:checkDistance()
     end
     Events.OnTick.Add(self.onTick_handler)
-
 end
 
 function CarTeleport_UI:startMove()
@@ -256,6 +331,7 @@ end
 
 function CarTeleport_UI:reset()
     self.isExperimentalAllowed = nil
+    self.isStableAllowed = nil
     self.vehicleList = {}
     self.selectStart = false
     self.selectEnd = false
@@ -276,6 +352,7 @@ function CarTeleport_UI:reset()
     self.UI[UI_DEL]:setEnable(false)
     self.UI[UI_TYPE].disabled = false
     self:setTypeText()
+    self.clearMarkers()
 
     if self.onTick_handler then
         Events.OnTick.Remove(self.onTick_handler)
@@ -288,9 +365,11 @@ function CarTeleport_UI:createUI()
     -- HACK: Не разобрался как нормально наследоваться, поэтому делаем хуки
     self.base_render = UI.render
     self.base_onMouseDownOutside = UI.onMouseDownOutside
+    self.base_close = UI.close
     UI.CarTeleport_UI_instance = self -- Записываем self в UI чтоб потом достать в рендере (см `CarTeleport_UI:render`)
     UI.render = self.render
     UI.onMouseDownOutside = self.onMouseDownOutside
+    UI.close = self.close
 
     local addEmpty_helper = function() -- NOTE: просто хелпер чтоб не писать длинную мутатень
         return UI:addEmpty(_,_,_, marginPx)
@@ -370,7 +449,7 @@ function CarTeleport_UI:new()
     local o = {}
     setmetatable(o, self)
     self.__index = self
-    -- o.isCarTeleport_UI = true -- TODO: Удалить. Переменная просто для дебага. Чтоб отличить инстанс UI, от инстанса CarTeleport_UI. Потому что из-за хаков может возникнуть путаница
+    o.isCarTeleport_UI = true -- TODO: Удалить. Переменная просто для дебага. Чтоб отличить инстанс UI, от инстанса CarTeleport_UI. Потому что из-за хаков может возникнуть путаница
     o.player = getPlayer()
     if CarTeleport_UI.instance then -- NOTE: Делаем что-то типа синглтона. TODO: разобраться как делать нормальные синглтоны
         CarTeleport_UI.instance:close()
@@ -381,27 +460,47 @@ function CarTeleport_UI:new()
     return o
 end
 
+CarTeleport_UI.clearMarkers = function()
+    for k,v in ipairs(markers) do
+        v:remove()
+    end
+    markers = {}
+end
+
 CarTeleport_UI.highlightArea = function(x1, x2, y1, y2, z, color)
     local cell = getCell()
     for x = x1, x2 do
         for y = y1, y2 do
+            local isSnow = cell:gridSquareIsSnow(x, y, z)
             local sq = cell:getGridSquare(x, y, z)
             if sq then 
                 local floor = sq:getFloor()
                 if floor then
                     floor:setHighlighted(true) 
                     if color then
-                        if color == 'red' then                            
-                            floor:setHighlightColor(1,0,0,1); 
+                        if color == 'red' then
+                            floor:setHighlightColor(1,0,0,1);
+                            if isSnow then
+                                table.insert(markers, getWorldMarkers():addGridSquareMarker(sq, 1, 0, 0, true, 1))
+                            end
                         end
-                        if color == 'green' then                            
+                        if color == 'green' then
                             floor:setHighlightColor(0,1,0,1); 
+                            if isSnow then
+                                table.insert(markers, getWorldMarkers():addGridSquareMarker(sq, 0, 1, 0, true, 1))
+                            end  
                         end
-                        if color == 'blue' then                            
-                            floor:setHighlightColor(0,0,1,1); 
+                        if color == 'blue' then
+                            floor:setHighlightColor(0,0,1,1);
+                            if isSnow then
+                                table.insert(markers, getWorldMarkers():addGridSquareMarker(sq, 0, 0, 1, true, 1))
+                            end
                         end
-                        if color == 'yellow' then                            
+                        if color == 'yellow' then
                             floor:setHighlightColor(1,1,0,1); 
+                            if isSnow then
+                                table.insert(markers, getWorldMarkers():addGridSquareMarker(sq, 1, 1, 0, true, 1))
+                            end
                         end
                     end
                 end        

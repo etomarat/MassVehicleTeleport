@@ -5,12 +5,13 @@ IG_UI_EN = {
 	IGUI_Stable_info = 	"<GREEN>Stable type of teleportation: <LINE> <RGB:1,1,1> " .. 
 						"Vehicles will be physically removed and new ones added in a new location. All characteristics of the cars will be identical. " .. 
 						"The key will be in the glove box or next to the car if there is no glove box. The appearance of the key can be changed in the settings. " ..
-						"<BR> Attention: All items from the car will be removed"
+						"<BR> Attention: All items from the car will be removed <BR> "
 	IGUI_Experimental_info = 	"<ORANGE>Experimental type of teleportation: <LINE> <RGB:1,1,1> " ..
 								"Cars will be physically moved as is, along with items. The teleport distance is limited. " ..
 								"Desync may occur, but nothing irreversible can happen. <BR>"
 	IGUI_Teleport_allowed = " <GREEN> Teleport is allowed"
 	IGUI_Teleport_disallowed = " <RED> Teleport disallowed. You have left the experimental teleport zone. Get back closer to the cars"
+	IGUI_Teleport_disallowed_stable = "<RED> Stable teleport disallowed. Target area contains a building"
 	IGUI_Teleport_cut_btn = "Cut"
 	IGUI_Teleport_target_btn = "Target area"
 	IGUI_Teleport_select_area_btn = "Select area"

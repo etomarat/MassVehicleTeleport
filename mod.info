@@ -1,5 +1,5 @@
 name=Mass Vehicle Teleport 
 poster=poster.png
 id=etomarat_CarTeleport
-description=Групповое перемещение и удаление транспорта
+description=Admin tool Project Zomboid mod which allows you to bulk move and remove vehicles.
 require=UIAPI
