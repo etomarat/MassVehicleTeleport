@@ -1,0 +1,4 @@
+Sandbox_EN = {
+	Sandbox_CarTeleport= "Vehicle Mass Teleport",
+	Sandbox_CarTeleport_ForceKeySpawn = "Force spawn key if car is not hotwired (for stable teleport)",
+}

@@ -1,0 +1,29 @@
+IG_UI_RU = {
+	IGUI_AdminPanel_CarTeleport_btn = "Телепорт транспорта"
+	IGUI_stable = "Стабильный"
+	IGUI_experimental = "Экспериментальный"
+	IGUI_Stable_info =  "<GREEN>Стабильный тип телепортации: <LINE> <RGB:1,1,1> Автомобили будут физически удалены и добавлены новые на новом месте. " ..
+						"Все характеристики автомобилей будут идентичными. Ключ будет находится в бардачке или рядом с машиной, если бардачка нет. " ..
+						"Появление ключа можно изменить в настройках " ..
+						"<BR> Внимание: Все вещи из автомобиля будут удалены"
+	IGUI_Experimental_info =    "<ORANGE>Экспериментальный тип телепортации: <LINE> <RGB:1,1,1>" ..
+								"Автомобили будут физически перемещены как есть, вместе с предметами. Дистанция телепорта ограничена. " ..
+								"Может произойти рассинхронизация, но ничего необратимого произойти не может. <BR> "
+	IGUI_Teleport_allowed = " <GREEN> Телепорт разрешен. Вы в зоне телепортации"
+	IGUI_Teleport_disallowed = " <RED> Телепорт невозможен. Вы покинули зону эксперементальной телепортации. Вернитесь ближе к автомобилям"
+	IGUI_Teleport_cut_btn = "Вырезать"
+	IGUI_Teleport_target_btn = "Целевая область"
+	IGUI_Teleport_select_area_btn = "Выбрать область"
+	IGUI_Teleport_reset_btn = "Сброс"
+	IGUI_Teleport_cancel_btn = "Отмена"
+	IGUI_Teleport_paste_btn = "Вставить"
+	IGUI_Teleport_remove_btn = "Удалить"
+	IGUI_Teleport_teleport_btn = "Телепортировать"
+	IGUI_Teleport_delete_confirm_pre = "Безвозвратно удалить "
+	IGUI_Teleport_delete_confirm_post = " ед. транспорта?"
+	IGUI_Teleport_player_left_tp_zone = "Вы покинули зону экспериментальной телепортации транспорта"
+	IGUI_Teleport_car_count = "количество авто: "
+	IGUI_Teleport_done = "Телепорт завершен!"
+	IGUI_Teleport_car_list = "Список авто"
+	IGUI_Teleport_teleport_type = "Способ телепорта: "
+}

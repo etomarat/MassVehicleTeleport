@@ -1,0 +1,10 @@
+VERSION = 1,
+
+option CarTeleport.ForceKeySpawn
+{
+	type = boolean,
+	default = true,
+
+	page = CarTeleport,
+	translation = CarTeleport_ForceKeySpawn,
+}
