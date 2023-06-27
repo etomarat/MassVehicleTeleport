@@ -285,7 +285,7 @@ function CarTeleport_UI:renderCarsList()
         table.insert(renderedList, carName .. ' | sqlId: ' .. v:getSqlId() .. ', vehicleId: ' .. v:getId() .. ', keyId: ' .. v:getKeyId())
     end
     self.vehicleList = vehicleList
-    self.UI[UI_LIST]:setitems(renderedList)
+    self.UI[UI_LIST]:setItems(renderedList)
     self.UI[UI_COUNTER]:setText(getText('IGUI_Teleport_car_count') .. #renderedList)
     self.UI[UI_SELECT]:setEnable(false)
     self.UI[UI_RESET]:setEnable(true)
@@ -343,7 +343,7 @@ function CarTeleport_UI:reset()
     self.zPos = 0
     self.xDif = 0
     self.yDif = 0
-    self.UI[UI_LIST]:setitems({})
+    self.UI[UI_LIST]:setItems({})
     self.UI[UI_COUNTER]:setText()
     self.UI[UI_SELECT]:setEnable(true)
     self.UI[UI_RESET]:setEnable(false)
