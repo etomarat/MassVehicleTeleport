@@ -49,7 +49,7 @@ end
 ---@param self CarTeleport_UI
 function CarTeleport_UI.cancel_btnHandler(button, self)
     if self.isMove and self.type_value == UI_TYPE_STABLE then
-        local vehicleList = {table.unpack(self.vehicleList)}
+        local vehicleList = self.vehicleList
         local modal = ISModalDialog:new(
             0, 0, 250, 150, 
             getText('IGUI_Teleport_delete_confirm_pre').. #vehicleList .. getText('IGUI_Teleport_delete_confirm_post'), 
@@ -66,7 +66,7 @@ end
 ---@param self CarTeleport_UI
 function CarTeleport_UI.reset_btnHandler(button, self)
     if self.isMove and self.type_value == UI_TYPE_STABLE then
-        local vehicleList = {table.unpack(self.vehicleList)}
+        local vehicleList = self.vehicleList
         local modal = ISModalDialog:new(
             0, 0, 250, 150, 
             getText('IGUI_Teleport_delete_confirm_pre').. #vehicleList .. getText('IGUI_Teleport_delete_confirm_post'), 
@@ -154,7 +154,7 @@ function CarTeleport_UI.delete_btnHandler(button, self)
         getPlayer():Say('OOPS: Unknown error. Please try again')
         return
     end
-    local vehicleList = {table.unpack(self.vehicleList)}
+    local vehicleList = self.vehicleList
     local modal = ISModalDialog:new(
         0, 0, 250, 150, 
         getText('IGUI_Teleport_delete_confirm_pre').. #vehicleList .. getText('IGUI_Teleport_delete_confirm_post'), 
